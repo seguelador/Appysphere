@@ -1,7 +1,7 @@
 # Instructions
 
-Using ruby console do:
+### Using ruby console do:
 
 `ruby -r "./appysphere.rb" -e "LogFileParser.new('sample_appysphere.log').method_name"`
-Example:
+#### Example:
 `ruby -r "./appysphere.rb" -e "LogFileParser.new('sample_appysphere.log').camera_called_per_home"`
