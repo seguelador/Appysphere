@@ -33,20 +33,17 @@ class LogFileParser
     lines.each do |line|
       result[line[/home_id=(.*?) /, 1]] += 1
     end
-    result.each do |k, v|
-      puts "Home with id: #{k} has #{v} camera calls"
-    end
+    puts result
 
     # File close
     log.close
   end
 
   def response_time_metrics
-    result                   = {}
-    result[:get_camera]      = get_metrics(@get_camera[:path])
-    result[:get_all_cameras] = get_metrics(@get_all_cameras[:path])
-    result[:get_home]        = get_metrics(@get_home[:path])
-    result[:post_users]      = get_metrics(@post_users[:path])
+    result              = {}
+    @urls.each do |url|
+      result[url[:name]] = get_metrics(url[:path])
+    end
     print result
 
   end
@@ -60,6 +57,8 @@ class LogFileParser
       metric[:average] = "#{mean(response_times)}ms"
       metric[:median]  = "#{median(response_times)}ms"
       metric[:mode]    = mode(response_times)
+
+      # File close
       log.close
       metric
     end
