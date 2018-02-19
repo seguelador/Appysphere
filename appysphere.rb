@@ -16,10 +16,10 @@ class LogFileParser
 
   # Number of times every camera was called segmented per home
   def camera_called_per_home
-    #Open File
+    # Open File
     log             = File.open(@file_path)
 
-    #Get urls which will be used from array of @urls
+    # Get urls which will be used from array of @urls
     get_camera      = @urls.find { |u| u[:name] == 'get_camera' }
     get_all_cameras = @urls.find { |u| u[:name] == 'get_all_cameras' }
 
@@ -33,19 +33,42 @@ class LogFileParser
     lines.each do |line|
       result[line[/home_id=(.*?) /, 1]] += 1
     end
-    puts result
+    print result
 
     # File close
     log.close
   end
 
+  # Mean, median and mode of the repsponse time (connect + service times) for urls
   def response_time_metrics
-    result              = {}
+    result = {}
     @urls.each do |url|
       result[url[:name]] = get_metrics(url[:path])
     end
     print result
+  end
 
+  # Ranking of the devices per service time
+  def devices_ranking
+    result = {}
+    # Open File
+    log = File.open(@file_path)
+
+    get_camera = @urls.find { |u| u[:name] == 'get_camera' }
+    lines = log.find_all { |line| line =~ /#{get_camera[:path]}/ }
+
+    # Iterate over the array adding to hash {ip: service time}
+    lines.each do |line|
+      result[line[/ip_camera=(.*?) /, 1]] = line[/service=(.*?)ms /, 1].to_i
+    end
+
+    # Sort by service time
+    result = result.sort_by { |k, v| v }.to_h
+
+    print result
+
+    # File close
+    log.close
   end
 
   private
