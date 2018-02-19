@@ -31,43 +31,28 @@ class LogFileParser
   end
 
   def response_time_metrics
-    # Create auto-vivifying Hash (Multidimensional)
-    result = Hash.new{ |h,k| h[k] = Hash.new(&h.default_proc) }
-
-    # Get Camera Metrics
-    byebug
-    lines = log.find_all { |line| line =~ /#{@get_camera[:path]}/ }
-    response_times = lines.map { |line| line[/service=(.*?)ms /, 1].to_i + line[/connect=(.*?)ms /, 1].to_i }
-    result[:get_camera][:average]      = "#{mean(response_times)}ms"
-    result[:get_camera][:median]       = "#{median(response_times)}ms"
-    result[:get_camera][:mode]         = mode(response_times)
-
-    # Get All Cameras Metrics
-    lines = log.find_all { |line| line =~ /#{@get_all_cameras[:path]}/ }
-    response_times = lines.map { |line| line[/service=(.*?)ms /, 1].to_i + line[/connect=(.*?)ms /, 1].to_i }
-    result[:get_all_cameras][:average] = "#{mean(response_times)}ms"
-    result[:get_all_cameras][:median]  = "#{median(response_times)}ms"
-    result[:get_all_cameras][:mode]    = mode(response_times)
-
-    # Get Home Metrics
-    lines = log.find_all { |line| line =~ /#{@get_home[:path]}/ }
-    response_times = lines.map { |line| line[/service=(.*?)ms /, 1].to_i + line[/connect=(.*?)ms /, 1].to_i }
-    result[:get_home][:average]        = "#{mean(response_times)}ms"
-    result[:get_home][:median]         = "#{median(response_times)}ms"
-    result[:get_home][:mode]           = mode(response_times)
-
-    # Post Users Metrics
-    lines = log.find_all { |line| line =~ /#{@post_users[:path]}/ }
-    response_times = lines.map { |line| line[/service=(.*?)ms /, 1].to_i + line[/connect=(.*?)ms /, 1].to_i }
-    result[:post_users][:average]      = "#{mean(response_times)}ms"
-    result[:post_users][:median]       = "#{median(response_times)}ms"
-    result[:post_users][:mode]         = mode(response_times)
-
+    result                   = {}
+    result[:get_camera]      = get_metrics(@get_camera[:path])
+    result[:get_all_cameras] = get_metrics(@get_all_cameras[:path])
+    result[:get_home]        = get_metrics(@get_home[:path])
+    result[:post_users]      = get_metrics(@post_users[:path])
     print result
-    log.close
+
   end
 
   private
+    def get_metrics path
+      log              = File.open(@file_path)
+      metric           = {}
+      lines            = log.find_all { |line| line =~ /#{path}/ }
+      response_times   = lines.map { |line| line[/service=(.*?)ms /, 1].to_i + line[/connect=(.*?)ms /, 1].to_i }
+      metric[:average] = "#{mean(response_times)}ms"
+      metric[:median]  = "#{median(response_times)}ms"
+      metric[:mode]    = mode(response_times)
+      log.close
+      metric
+    end
+
     # Methods for Mean, Median and Mode, also could extend Array Class
     def mean array
       array.inject(:+).to_f / array.length.to_f
