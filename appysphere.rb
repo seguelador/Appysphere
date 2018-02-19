@@ -55,7 +55,7 @@ class LogFileParser
     log = File.open(@file_path)
 
     get_camera = @urls.find { |u| u[:name] == 'get_camera' }
-    lines = log.find_all { |line| line =~ /#{get_camera[:path]}/ }
+    lines      = log.find_all { |line| line =~ /#{get_camera[:path]}/ }
 
     # Iterate over the array adding to hash {ip: service time}
     lines.each do |line|
