@@ -5,20 +5,29 @@ class LogFileParser
     raise ArgumentError unless File.exists?(file_path)
     @file_path = file_path
 
-    # URLs
-    @get_camera      = { method: 'GET', path: '/api/users/(.*?)/get_camera' }
-    @get_all_cameras = { method: 'GET', path: '/api/users/(.*?)/get_all_cameras' }
-    @get_home        = { method: 'GET', path: '/api/users/(.*?)/get_home' }
-    @post_users      = { method: 'POST', path: '/api/users/(.*?)' }
+    # Define URLs in array
+    @urls = [
+      { name: 'get_camera', method: 'GET', path: '/api/users/(.*?)/get_camera' },
+      { name: 'get_all_cameras', method: 'GET', path: '/api/users/(.*?)/get_all_cameras' },
+      { name: 'get_home' ,method: 'GET', path: '/api/users/(.*?)/get_home' },
+      { name: 'post_users', method: 'POST', path: '/api/users/(.*?)' }
+    ]
   end
 
   # Number of times every camera was called segmented per home
   def camera_called_per_home
-    log = File.open(@file_path)
+    #Open File
+    log             = File.open(@file_path)
+
+    #Get urls which will be used from array of @urls
+    get_camera      = @urls.find { |u| u[:name] == 'get_camera' }
+    get_all_cameras = @urls.find { |u| u[:name] == 'get_all_cameras' }
+
     # Get lines with specific urls
-    lines  = log.find_all { |line| line =~ /#{@get_camera[:path]}/ || line =~ /#{@get_all_cameras[:path]}/ }
+    lines           = log.find_all { |line| line =~ /#{get_camera[:path]}/ || line =~ /#{get_all_cameras[:path]}/ }
+
     # Make a hash for counting default to 0 so that += will work
-    result = Hash.new(0)
+    result          = Hash.new(0)
 
     # Iterate over the array, counting duplicate entries
     lines.each do |line|
@@ -27,6 +36,8 @@ class LogFileParser
     result.each do |k, v|
       puts "Home with id: #{k} has #{v} camera calls"
     end
+
+    # File close
     log.close
   end
 
